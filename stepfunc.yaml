@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Step Function with Python and Node.js Lambda functions'
+
+Resources:
+  PythonFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: PythonLambdaFunction
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              # Your Python function logic here
+              return {
+                  'statusCode': 200,
+                  'body': 'Hello from Python Lambda!'
+              }
+      Runtime: python3.8
+
+  NodeJSFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: NodeJSLambdaFunction
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+              // Your Node.js function logic here
+              return {
+                  statusCode: 200,
+                  body: 'Hello from Node.js Lambda!'
+              };
+          };
+      Runtime: nodejs14.x
+
+  StepFunction:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      DefinitionString: !Sub |
+        {
+          "Comment": "A step function with Python and Node.js Lambda functions",
+          "StartAt": "PythonState",
+          "States": {
+            "PythonState": {
+              "Type": "Task",
+              "Resource": "${PythonFunction.Arn}",
+              "Next": "NodeJSState"
+            },
+            "NodeJSState": {
+              "Type": "Task",
+              "Resource": "${NodeJSFunction.Arn}",
+              "End": true
+            }
+          }
+        }
+      RoleArn: !GetAtt StepFunctionExecutionRole.Arn
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  StepFunctionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StepFunctionLambdaInvoke
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !GetAtt PythonFunction.Arn
+                  - !GetAtt NodeJSFunction.Arn
