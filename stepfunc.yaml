@@ -5,7 +5,7 @@ Resources:
   PythonFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: PythonLambdaFunction
+      FunctionName: db-pythonstep
       Handler: index.lambda_handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
@@ -21,7 +21,7 @@ Resources:
   NodeJSFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: NodeJSLambdaFunction
+      FunctionName: db-nodeJSstep
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
