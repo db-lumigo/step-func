@@ -16,7 +16,7 @@ Resources:
                   'statusCode': 200,
                   'body': 'Hello from Python Lambda!'
               }
-      Runtime: python3.8
+      Runtime: python3.10
 
   NodeJSFunction:
     Type: AWS::Lambda::Function
@@ -33,7 +33,7 @@ Resources:
                   body: 'Hello from Node.js Lambda!'
               };
           };
-      Runtime: nodejs14.x
+      Runtime: nodejs20.x
 
   StepFunction:
     Type: AWS::StepFunctions::StateMachine
